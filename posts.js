@@ -1,16 +1,20 @@
 // posts.js
 const express = require('express');
 const router = express.Router();
+const validatePostData = require('./middlewares/validateRequest');
 
-// Route to create a new post
-router.post('/post', (req, res) => {
+// In-memory storage for posts (for demonstration purposes)
+const posts = [];
+
+// Route to create a new post with validation
+router.post('/post', validatePostData, (req, res) => {
   const newPostData = req.body;
-  // Logic to save the new post (e.g., saving to a database)
+  posts.push(newPostData); // Save the new post to the in-memory storage
 
   // For demonstration, simply send back the received data
   res.status(201).send({
     message: 'Post created successfully!',
-    post: newPostData
+    post: newPostData,
   });
 });
 
@@ -18,19 +22,41 @@ router.post('/post', (req, res) => {
 router.route('/post/:slug')
   .get((req, res) => {
     const { slug } = req.params;
-    // Fetch and render a single post based on the slug
-    res.send(`Render post with slug: ${slug}`);
+    const post = posts.find(p => p.slug === slug);
+
+    if (post) {
+      res.render('post', { post }); // Render the post using EJS
+    } else {
+      res.status(404).send(`Post with slug: ${slug} not found`);
+    }
   })
-  .put((req, res) => {
+  .put(validatePostData, (req, res) => {
     const { slug } = req.params;
     const updatedPostData = req.body;
-    // Update the post with the provided data
-    res.send(`Update post with slug: ${slug} using data: ${JSON.stringify(updatedPostData)}`);
+    const postIndex = posts.findIndex(p => p.slug === slug);
+
+    if (postIndex !== -1) {
+      posts[postIndex] = updatedPostData; // Update the post in the in-memory storage
+      res.send(`Update post with slug: ${slug} using data: ${JSON.stringify(updatedPostData)}`);
+    } else {
+      res.status(404).send(`Post with slug: ${slug} not found`);
+    }
   })
   .delete((req, res) => {
     const { slug } = req.params;
-    // Logic to delete the post with the given slug
-    res.send(`Delete post with slug: ${slug}`);
+    const postIndex = posts.findIndex(p => p.slug === slug);
+
+    if (postIndex !== -1) {
+      posts.splice(postIndex, 1); // Delete the post from the in-memory storage
+      res.send(`Delete post with slug: ${slug}`);
+    } else {
+      res.status(404).send(`Post with slug: ${slug} not found`);
+    }
   });
+
+// Route to get all posts
+router.get('/posts', (req, res) => {
+  res.render('posts', { posts }); // Render the posts using EJS
+});
 
 module.exports = router;

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Blog Posts</title>
+</head>
+<body>
+  <h1>All Blog Posts</h1>
+  <ul>
+    <% posts.forEach(post => { %>
+      <li>
+        <a href="/blog/post/<%= post.slug %>"><%= post.title %></a> by <%= post.author %>
+      </li>
+    <% }); %>
+  </ul>
+  div.footer.
+   I'm the footer for this website.
+</body>
+</html>
